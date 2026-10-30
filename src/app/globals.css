@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-outfit), sans-serif;
+  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --color-ivory: #f3eee6;
+  --color-paper: #faf7f2;
+  --color-ink: #1c1614;
+  --color-muted: #6d645c;
+  --color-line: #e4dacd;
+  --color-wine: #722433;
+  --color-gold: #a68456;
+  --color-moss: #234036;
+  --color-sand: #eadfce;
+}
+
+body {
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: #722433;
+  color: #faf7f2;
+}
+
+input,
+select,
+textarea {
+  accent-color: #722433;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.delay-1 {
+  animation-delay: 0.12s;
+}
+.delay-2 {
+  animation-delay: 0.24s;
+}
+.delay-3 {
+  animation-delay: 0.36s;
+}
+.delay-4 {
+  animation-delay: 0.48s;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.tile img {
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.tile:hover img {
+  transform: scale(1.08);
+}
+
+.hero-photo {
+  animation: rise-in 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in,
+  .delay-1,
+  .delay-2,
+  .delay-3,
+  .delay-4,
+  .hero-photo,
+  .marquee-track {
+    animation: none;
+  }
+
+  .tile img {
+    transition: none;
+  }
+}
