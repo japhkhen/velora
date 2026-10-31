@@ -25,7 +25,11 @@ export async function storeProductImage(file: File) {
   }
 
   const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), bytes);
+  try {
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, name), bytes);
+  } catch {
+    throw new Error("The live site cannot store new photos until Supabase storage is connected.");
+  }
   return `/uploads/${name}`;
 }

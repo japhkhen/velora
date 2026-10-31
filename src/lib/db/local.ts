@@ -27,7 +27,11 @@ type Database = {
   webhooks: { provider: string; key: string }[];
 };
 
-const filePath = path.join(process.cwd(), "data", "store.json");
+const bundledPath = path.join(process.cwd(), "data", "store.json");
+const filePath = process.env.VERCEL ? path.join("/tmp", "velora-store.json") : bundledPath;
+
+let memory: Database | null = null;
+let loading: Promise<Database> | null = null;
 
 function queue() {
   const g = globalThis as typeof globalThis & { __veloraQueue?: Promise<unknown> };
@@ -101,22 +105,45 @@ function mergeCatalog(db: Database) {
   return changed;
 }
 
-async function read(): Promise<Database> {
+async function readFileIfPresent(target: string) {
   try {
-    const raw = await readFile(filePath, "utf8");
-    const db = JSON.parse(raw) as Database;
-    if (mergeCatalog(db)) await write(db);
-    return db;
+    return JSON.parse(await readFile(target, "utf8")) as Database;
   } catch {
-    const seeded = await ensureSeed(null);
-    await write(seeded);
-    return seeded;
+    return null;
   }
 }
 
+async function load(): Promise<Database> {
+  const runtime = await readFileIfPresent(filePath);
+  const saved = runtime ?? (filePath === bundledPath ? null : await readFileIfPresent(bundledPath));
+  if (saved) {
+    const changed = mergeCatalog(saved);
+    memory = saved;
+    if (changed || !runtime) await write(saved);
+    return saved;
+  }
+  const seeded = await ensureSeed(null);
+  memory = seeded;
+  await write(seeded);
+  return seeded;
+}
+
+async function read(): Promise<Database> {
+  if (memory) return memory;
+  loading ??= load().finally(() => {
+    loading = null;
+  });
+  return loading;
+}
+
 async function write(db: Database) {
-  await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, JSON.stringify(db, null, 2), "utf8");
+  memory = db;
+  try {
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, JSON.stringify(db, null, 2), "utf8");
+  } catch {
+    // Vercel’s project disk is read-only. This instance still serves the in-memory catalog.
+  }
 }
 
 function publicUser(user: LocalUser): UserPublic {

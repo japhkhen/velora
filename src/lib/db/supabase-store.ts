@@ -226,7 +226,10 @@ async function client() {
         );
         if (moveError) throw new Error(moveError.message);
       }
-    })();
+    })().catch((error: unknown) => {
+      ready = null;
+      throw error;
+    });
   }
   await ready;
   return supabase;

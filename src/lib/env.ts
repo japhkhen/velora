@@ -23,7 +23,14 @@ export function isTaysendConfigured() {
 }
 
 export function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (process.env.VERCEL && productionHost && (!configured || configured.includes("localhost"))) {
+    return `https://${productionHost}`;
+  }
+  if (configured) return configured;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
 }
 
 export function sessionSecret() {
